@@ -120,6 +120,10 @@ $client->call('sites_web_aliasdomain_add', $clientId, $params);
 
 ## Backed enums for the ISPConfig magic-string fields
 
+Two flavours — see [USAGE.md → Enums](USAGE.md#enums) for the full table.
+
+**Method-argument enums** (`Pulli\TimmeSoapClient\Enums\*`) — passed directly to wrapper methods:
+
 | Enum | Values | Used by |
 |---|---|---|
 | `Toggle` | `Yes='y'`, `No='n'` (+ `fromBool()`) | Cron `active` |
@@ -128,6 +132,19 @@ $client->call('sites_web_aliasdomain_add', $clientId, $params);
 | `DnsRecordType` | `A`, `Aaaa`, `Alias`, `Cname`, `Hinfo`, `Mx`, `Ns`, `Ptr`, `Rp`, `Soa`, `Srv`, `Txt`, `Ds`, `Dnskey`, `Caa`, `Tlsa`, `Sshfp` | `Dns::record(...)` |
 | `CrudOp` | `Get`, `Add`, `Update`, `Delete` | `Dns::record(...)` |
 | `BackupAction` | `BackupDownload`, `BackupDownloadLink`, `BackupRestore` | `Sites::backup()`, `Mail::userBackup()` |
+
+**Param-value enums** (`Pulli\TimmeSoapClient\Enums\Params\*`) — pass via `->value` when building `$params` arrays:
+
+| Enum | ISPConfig field | Values |
+|---|---|---|
+| `IpType` | `server_ip.ip_type` | `IPv4`, `IPv6` |
+| `VhostType` | `web_domain.type` | `Vhost`, `Alias`, `Subdomain`, `VhostAlias`, `VhostSubdomain` |
+| `WebSubdomain` | `web_domain.subdomain` | `None`, `Www`, `Wildcard` (`*`) |
+| `PhpHandler` | `web_domain.php` | `Disabled` (`no`), `FastCgi`, `PhpFpm`, `Mod` |
+| `DatabaseType` | `sites_database.type` | `Mysql`, `Postgresql` |
+| `ChrootMode` | `shell_user.chroot` | `None` (`no`), `Jailkit`, `SshChroot` |
+| `DnsZoneType` | `dns_zone.type` | `Master`, `Slave` (uppercase!) |
+| `SslAction` | `web_domain.ssl_action` | `Create`, `Save`, `Delete` (`del`) |
 
 ## Resource coverage
 

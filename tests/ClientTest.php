@@ -5,6 +5,14 @@ use Pulli\TimmeSoapClient\Enums\BackupAction;
 use Pulli\TimmeSoapClient\Enums\CronType;
 use Pulli\TimmeSoapClient\Enums\CrudOp;
 use Pulli\TimmeSoapClient\Enums\DnsRecordType;
+use Pulli\TimmeSoapClient\Enums\Params\ChrootMode;
+use Pulli\TimmeSoapClient\Enums\Params\DatabaseType;
+use Pulli\TimmeSoapClient\Enums\Params\DnsZoneType;
+use Pulli\TimmeSoapClient\Enums\Params\IpType;
+use Pulli\TimmeSoapClient\Enums\Params\PhpHandler;
+use Pulli\TimmeSoapClient\Enums\Params\SslAction;
+use Pulli\TimmeSoapClient\Enums\Params\VhostType;
+use Pulli\TimmeSoapClient\Enums\Params\WebSubdomain;
 use Pulli\TimmeSoapClient\Enums\Status;
 use Pulli\TimmeSoapClient\Enums\Toggle;
 use Pulli\TimmeSoapClient\Exception;
@@ -313,4 +321,23 @@ it('sites->backupDownloadLink is a shortcut that calls sites_web_domain_backup w
     [$name, $args] = end($calls);
     expect($name)->toBe('sites_web_domain_backup')
         ->and($args[2])->toBe('backup_download_link');
+});
+
+it('params enums expose the literal ISPConfig magic-string values', function () {
+    expect(IpType::IPv4->value)->toBe('IPv4')
+        ->and(IpType::IPv6->value)->toBe('IPv6')
+        ->and(VhostType::Vhost->value)->toBe('vhost')
+        ->and(VhostType::VhostSubdomain->value)->toBe('vhostsubdomain')
+        ->and(WebSubdomain::None->value)->toBe('none')
+        ->and(WebSubdomain::Wildcard->value)->toBe('*')
+        ->and(PhpHandler::PhpFpm->value)->toBe('php-fpm')
+        ->and(PhpHandler::Disabled->value)->toBe('no')
+        ->and(DatabaseType::Mysql->value)->toBe('mysql')
+        ->and(DatabaseType::Postgresql->value)->toBe('postgresql')
+        ->and(ChrootMode::Jailkit->value)->toBe('jailkit')
+        ->and(ChrootMode::None->value)->toBe('no')
+        ->and(DnsZoneType::Master->value)->toBe('MASTER')
+        ->and(DnsZoneType::Slave->value)->toBe('SLAVE')
+        ->and(SslAction::Create->value)->toBe('create')
+        ->and(SslAction::Delete->value)->toBe('del');
 });

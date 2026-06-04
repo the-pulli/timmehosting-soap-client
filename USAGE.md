@@ -903,6 +903,13 @@ $q = $client->utility->quotaByUser(username: 'web5');
 
 Backed enums for the ISPConfig magic-string fields. Always prefer these to passing raw strings.
 
+Two namespaces:
+
+- `Pulli\TimmeSoapClient\Enums\*` — passed as direct method arguments (e.g. `Cron::add(type: CronType::Full)`).
+- `Pulli\TimmeSoapClient\Enums\Params\*` — used as values **inside** `$params` arrays via `->value` (e.g. `'type' => VhostType::Vhost->value`).
+
+### Method-argument enums
+
 ```php
 use Pulli\TimmeSoapClient\Enums\{
     Toggle, Status, CronType, DnsRecordType, CrudOp, BackupAction,
@@ -955,3 +962,72 @@ BackupAction::BackupDownload;
 BackupAction::BackupDownloadLink;
 BackupAction::BackupRestore;
 ```
+
+### Param-value enums
+
+These cover the magic-string values consumers used to have to remember when building `$params` arrays for `add`/`update` calls. Pass them via `->value`:
+
+```php
+use Pulli\TimmeSoapClient\Enums\Toggle;
+use Pulli\TimmeSoapClient\Enums\Params\{
+    IpType, VhostType, WebSubdomain, PhpHandler,
+    DatabaseType, ChrootMode, DnsZoneType, SslAction,
+};
+
+$client->sites->add(clientId: 2, params: [
+    'server_id'  => 1,
+    'domain'     => 'example.com',
+    'type'       => VhostType::Vhost->value,         // 'vhost'
+    'subdomain'  => WebSubdomain::Www->value,        // 'www'
+    'php'        => PhpHandler::PhpFpm->value,       // 'php-fpm'
+    'active'     => Toggle::Yes->value,              // 'y' (existing method-arg enum)
+]);
+
+$client->server->addIp(clientId: 2, params: [
+    'server_id'  => 1,
+    'ip_type'    => IpType::IPv4->value,             // 'IPv4'
+    'ip_address' => '203.0.113.99',
+]);
+
+$client->databases->add(clientId: 2, params: [
+    'server_id'        => 1,
+    'parent_domain_id' => 5,
+    'type'             => DatabaseType::Mysql->value, // 'mysql'
+    'database_name'    => 'myapp',
+    'active'           => Toggle::Yes->value,
+]);
+
+$client->shellUsers->add(clientId: 2, params: [
+    'server_id'        => 1,
+    'parent_domain_id' => 5,
+    'username'         => 'deploy_runner',
+    'shell'            => '/bin/bash',
+    'chroot'           => ChrootMode::Jailkit->value, // 'jailkit'
+]);
+
+$client->dns->addZone(clientId: 2, params: [
+    'server_id' => 1,
+    'origin'    => 'example.com.',
+    'type'      => DnsZoneType::Master->value,        // 'MASTER' (uppercase — ISPConfig's only uppercase enum field)
+    'active'    => 'Y',
+]);
+
+// SSL state machine — flip the action on a vhost update
+$client->sites->update(clientId: 2, domainId: 5, params: [
+    'ssl_action'     => SslAction::Create->value,    // 'create'
+    'ssl_letsencrypt' => Toggle::Yes->value,
+]);
+```
+
+#### Full param-value enum reference
+
+| Enum | ISPConfig field | Values |
+|---|---|---|
+| `IpType` | `server_ip.ip_type` | `IPv4='IPv4'`, `IPv6='IPv6'` |
+| `VhostType` | `web_domain.type` | `Vhost='vhost'`, `Alias='alias'`, `Subdomain='subdomain'`, `VhostAlias='vhostalias'`, `VhostSubdomain='vhostsubdomain'` |
+| `WebSubdomain` | `web_domain.subdomain` | `None='none'`, `Www='www'`, `Wildcard='*'` |
+| `PhpHandler` | `web_domain.php` | `Disabled='no'`, `FastCgi='fast-cgi'`, `PhpFpm='php-fpm'`, `Mod='mod'` |
+| `DatabaseType` | `sites_database.type` | `Mysql='mysql'`, `Postgresql='postgresql'` |
+| `ChrootMode` | `shell_user.chroot` | `None='no'`, `Jailkit='jailkit'`, `SshChroot='ssh-chroot'` |
+| `DnsZoneType` | `dns_zone.type` | `Master='MASTER'`, `Slave='SLAVE'` (uppercase!) |
+| `SslAction` | `web_domain.ssl_action` | `Create='create'`, `Save='save'`, `Delete='del'` |
