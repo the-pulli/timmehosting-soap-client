@@ -32,6 +32,8 @@ Requires PHP 8.4+ and `ext-soap`.
 
 ## Usage
 
+The examples below are a quick tour — for a detailed walkthrough of **every typed function** grouped by resource (with quirks, defaults, and enum usage for each), see **[USAGE.md](USAGE.md)**.
+
 ```php
 use Pulli\TimmeSoapClient\Client;
 use Pulli\TimmeSoapClient\Enums\{
