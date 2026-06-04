@@ -1,0 +1,45 @@
+<?php
+
+// System > Entfernte Benutzer: erfordert Checkbox 'domains_domain_add'
+require 'soap_config.php';
+
+$context = stream_context_create([
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+    ],
+]);
+
+$client = new SoapClient(null, ['location' => $soap_location,
+    'uri' => $soap_uri,
+    'trace' => 1,
+    'exceptions' => 1,
+    'stream_context' => $context]);
+
+try {
+    if ($session_id = $client->login($username, $password)) {
+        echo 'Login successful. Session ID:'.$session_id.'<br>';
+    }
+
+    // * Set the function parameters.
+    $params = [
+        'sys_userid' => 1,
+        'sys_groupid' => 1,
+        'sys_perm_user' => 1,
+        'sys_perm_group' => 1,
+        'sys_perm_other' => 1,
+        'domain' => 'example.com',
+    ];
+
+    $ret = $client->domains_domain_add($session_id, $client_id, $params);
+
+    echo $ret.'<br>';
+
+    if ($client->logout($session_id)) {
+        echo 'Logged out.<br>';
+    }
+
+} catch (SoapFault $e) {
+    echo $client->__getLastResponse();
+    exit('SOAP Error: '.$e->getMessage());
+}

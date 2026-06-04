@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Pre-commit hook for pulli/timmehosting-soap-client.
+# Activated automatically by composer's post-install-cmd
+# (git config core.hooksPath .githooks).
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# Pint on staged PHP files (auto-fix + re-stage).
+# Skip reference/ — those are byte-faithful mirrors of Timme's example
+# scripts and may include the original authors' style quirks/typos.
+STAGED_PHP_FILES=$(git diff --cached --name-only --diff-filter=ACM \
+    | grep '\.php$' \
+    | grep -v '^reference/' \
+    || true)
+
+if [ -n "$STAGED_PHP_FILES" ]; then
+    echo "Fixing code style with Pint..."
+    herd php vendor/bin/pint --format agent $STAGED_PHP_FILES
+    echo "$STAGED_PHP_FILES" | xargs git add
+fi
+
+# Pest test suite (no --parallel — too few tests to benefit, and serial output is easier to read on failure)
+if [ -f vendor/bin/pest ]; then
+    echo "Running Pest..."
+    herd php vendor/bin/pest --compact
+
+    if [ $? -ne 0 ]; then
+        echo "Tests failed. Commit aborted."
+        exit 1
+    fi
+fi
+
+echo "All checks passed!"
+exit 0
