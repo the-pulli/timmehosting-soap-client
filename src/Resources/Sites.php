@@ -174,6 +174,26 @@ class Sites extends Resource
     }
 
     /**
+     * Set the vhost's `custom_php_ini` field (raw php.ini directives, one
+     * `key = value` per line; ISPConfig injects them into the site's FPM
+     * pool and reloads php-fpm). Idempotent — returns false if the value
+     * already matches, true if updated.
+     */
+    public function setCustomPhpIni(int $clientId, int $domainId, string $phpIni): bool
+    {
+        $site = $this->find($domainId);
+        if (trim((string) ($site['custom_php_ini'] ?? '')) === trim($phpIni)) {
+            return false;
+        }
+        $site = $this->stripSysFields($site);
+        $site['custom_php_ini'] = $phpIni;
+        $site['client_group_id'] = $this->client->clients->groupId($clientId);
+        $this->update($clientId, $domainId, $site);
+
+        return true;
+    }
+
+    /**
      * Strip ISPConfig system permission fields that must NOT be sent back
      * on an update (the panel reasserts them itself).
      *

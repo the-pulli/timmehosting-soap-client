@@ -2,6 +2,12 @@
 
 All notable changes to `pulli/timmehosting-soap-client` will be documented in this file.
 
+## v1.2.0 - 2026-06-30
+
+### Added
+
+- `Sites::setCustomPhpIni()` — idempotently set a vhost's `custom_php_ini` field (raw php.ini directives applied to the site's FPM pool), mirroring `setNginxDirectives()`.
+
 ## v1.1.0 - 2026-06-04
 
 Adds backed enums for the ISPConfig magic-string values that consumers used to have to remember when building `$params` arrays. Same pattern as the existing top-level enums (`Toggle`, `Status`, `CronType`, …), but organised in a separate namespace to keep the distinction clear:

@@ -228,6 +228,102 @@ it('setWebFolder writes when value differs and strips sys_* fields', function ()
         ->and($sentSite)->not->toHaveKey('sys_perm_user');
 });
 
+it('setCustomPhpIni is idempotent — returns false when value matches', function () {
+    $calls = [];
+    $soap = new class($calls) extends SoapClient
+    {
+        public function __construct(public array &$calls)
+        {
+            // no parent::__construct
+        }
+
+        public function login($u, $p): string
+        {
+            return 'sid';
+        }
+
+        public function logout($s): bool
+        {
+            return true;
+        }
+
+        public function __call($name, $args): mixed
+        {
+            $this->calls[] = [$name, $args];
+
+            return match ($name) {
+                'sites_web_domain_get' => ['domain_id' => 5, 'custom_php_ini' => "post_max_size = 32M\nmemory_limit = 256M"],
+                default => null,
+            };
+        }
+    };
+    $client = makeClient($soap);
+
+    $changed = $client->sites->setCustomPhpIni(2, 5, "post_max_size = 32M\nmemory_limit = 256M");
+
+    expect($changed)->toBeFalse()
+        ->and(array_column($calls, 0))->not->toContain('sites_web_domain_update');
+});
+
+it('setCustomPhpIni writes when value differs and strips sys_* fields', function () {
+    $calls = [];
+    $soap = new class($calls) extends SoapClient
+    {
+        public function __construct(public array &$calls)
+        {
+            // no parent::__construct
+        }
+
+        public function login($u, $p): string
+        {
+            return 'sid';
+        }
+
+        public function logout($s): bool
+        {
+            return true;
+        }
+
+        public function __call($name, $args): mixed
+        {
+            $this->calls[] = [$name, $args];
+
+            return match ($name) {
+                'sites_web_domain_get' => [
+                    'domain_id' => 5,
+                    'custom_php_ini' => '',
+                    'sys_userid' => 1,
+                    'sys_groupid' => 1,
+                    'sys_perm_user' => 'riud',
+                    'sys_perm_group' => 'riud',
+                    'sys_perm_other' => '',
+                ],
+                'client_get_groupid' => 3,
+                'sites_web_domain_update' => true,
+                default => null,
+            };
+        }
+    };
+    $client = makeClient($soap);
+
+    $changed = $client->sites->setCustomPhpIni(2, 5, 'post_max_size = 32M');
+
+    $update = null;
+    foreach ($calls as $call) {
+        if ($call[0] === 'sites_web_domain_update') {
+            $update = $call;
+            break;
+        }
+    }
+    $sentSite = $update[1][3]; // session, clientId, domainId, $params
+
+    expect($changed)->toBeTrue()
+        ->and($sentSite)->toHaveKey('custom_php_ini', 'post_max_size = 32M')
+        ->and($sentSite)->toHaveKey('client_group_id', 3)
+        ->and($sentSite)->not->toHaveKey('sys_userid')
+        ->and($sentSite)->not->toHaveKey('sys_perm_user');
+});
+
 it('generic call() forwards to any SOAP function with session injected', function () {
     $calls = [];
     $soap = makeSoap($calls);
