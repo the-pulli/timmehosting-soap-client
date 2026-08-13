@@ -23,7 +23,7 @@
         "ext-soap": "*"
     },
     "require-dev": {
-        "pestphp/pest": "^4.0",
+        "pestphp/pest": "^5.1",
         "laravel/pint": "^1.0"
     },
     "autoload": {
